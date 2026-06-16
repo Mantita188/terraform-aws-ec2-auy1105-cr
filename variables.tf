@@ -1,20 +1,29 @@
+variable "environment" {
+  type        = string
+  description = "Ambiente de despliegue (ej: dev, prod)"
+}
+
 variable "vpc_id" {
   type        = string
-  description = "ID de la VPC provista por el modulo de redes"
+  description = "ID de la VPC donde se asociara el Security Group"
 }
 
-variable "subnet_id" {
+variable "public_subnet_id" {
   type        = string
-  description = "Subnet ID publica para la EC2"
+  description = "ID de la subred publica donde se alojara la instancia"
 }
 
-variable "alb_sg_id" {
+variable "alb_security_group_id" {
   type        = string
-  description = "Security Group del ALB para validar las reglas ingress"
+  description = "ID del Security Group perimetral del ALB para habilitar el trafico cruzado"
 }
 
-variable "key_name" {
+variable "ami_id" {
   type        = string
-  default     = "vockey"
-  description = "Llave SSH obligatoria de AWS Learner Lab"
+  description = "ID de la AMI de Ubuntu para la instancia"
+}
+
+variable "instance_type" {
+  type        = string
+  description = "Tipo de instancia EC2 (ej: t2.micro)"
 }

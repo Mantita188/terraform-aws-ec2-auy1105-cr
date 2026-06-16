@@ -1,22 +1,14 @@
 resource "aws_security_group" "web" {
-  name        = "test01-sg-web-cr"
-  description = "Permite trafico HTTP desde el ALB y SSH desde Internet"
+  name        = "${var.environment}-sg-ec2"
+  description = "Permite trafico HTTP entrante restringido solo desde el ALB"
   vpc_id      = var.vpc_id
 
   ingress {
-    description = "SSH desde Internet"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description     = "HTTP solo desde el ALB"
+    description     = "HTTP desde el ALB"
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
-    security_groups = [var.alb_sg_id]
+    security_groups = [var.alb_security_group_id] # Filtro perimetral estricto
   }
 
   egress {
@@ -25,23 +17,29 @@ resource "aws_security_group" "web" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = {
+    Name = "${var.environment}-sg-ec2"
+  }
 }
 
 resource "aws_instance" "web" {
-  ami                    = "ami-0c02fb55956c7d316"
-  instance_type          = "t2.micro"
-  subnet_id              = var.subnet_id
+  ami                    = var.ami_id
+  instance_type          = var.instance_type
+  subnet_id              = var.public_subnet_id
   vpc_security_group_ids = [aws_security_group.web.id]
-  key_name               = var.key_name
 
   user_data = <<-EOF
-    #!/bin/bash
-    yum update -y
-    yum install -y httpd
-    systemctl start httpd
-    systemctl enable httpd
-    echo "<h1>Servidor Web Modular - Prueba 2</h1>" > /var/www/html/index.html
-  EOF
+              #!/bin/bash
+              sudo apt-get update -y
+              sudo apt-get install -y apache2
+              sudo systemctl start apache2
+              sudo systemctl enable apache2
+              echo "<h1>Despliegue Exitoso - Evaluacion 2 Ccon modularidad limpia</h1>" | sudo tee /var/www/html/index.html
+              EOF
 
-  tags = { Name = "ec2-web-cr" }
+  tags = {
+    Name        = "${var.environment}-web-server"
+    Environment = var.environment
+  }
 }
